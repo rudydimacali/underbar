@@ -286,13 +286,12 @@
   //   }, {
   //     bla: "even more stuff"
   //   }); // obj1 now contains key1, key2, key3 and bla
-  _.extend = function(obj, addObj, addObjTwo) {
-    _.each(addObj, function(keys, key) {
-      obj[key] = addObj[key];
-    });
-    _.each(addObjTwo, function(keys, key) {
-      obj[key] = addObjTwo[key];
-    });
+  _.extend = function(obj) {
+    for (var i = 1; i < arguments.length; i++) {
+      _.each(arguments[i], function(value, key) {
+          obj[key] = value;
+      });
+    }
     return obj;
   };
 
@@ -300,15 +299,14 @@
   // exists in obj
   _.defaults = function(obj) {
     for (var i = 1; i < arguments.length; i++) {
-      _.each(arguments[i], function(keys,key) {
-        if (obj[key] === undefined) {
-          obj[key] = arguments[i][key];
+      _.each(arguments[i], function(value, key) {
+        if (!obj.hasOwnProperty(key)) {
+          obj[key] = value;
         }
       });
     }
     return obj;
   };
-
 
   /**
    * FUNCTIONS
@@ -350,7 +348,29 @@
   // already computed the result for the given argument and return that value
   // instead if possible.
   _.memoize = function(func) {
-  };
+    var results = {};
+    return function() {
+      var key = JSON.stringify(arguments);
+      if (Array.isArray(arguments[0])) {
+        for (var i = 0; i < arguments[0].length; i++) {
+          if (results[arguments[0][i]]) {
+            return results[arguments[0][i]];
+          } else {
+            results[arguments[0][i]] = func(arguments[0][i]);
+            return results[arguments[0][i]];
+          }
+        }
+      } else {
+        if (results[key]) {
+          return results[key];
+        } else {
+          results[key] = func.apply(func, arguments);
+          return results[key];
+        }
+      }
+    }
+  }
+
 
   // Delays a function for the given number of milliseconds, and then calls
   // it with the arguments supplied.
